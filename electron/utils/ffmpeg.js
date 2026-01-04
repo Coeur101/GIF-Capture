@@ -22,9 +22,7 @@ function getFfmpegPath() {
       // 1. extraResources 位置（最优先）
       path.join(resourcesPath, 'ffmpeg-static', ffmpegName),
       // 2. app.asar.unpacked 位置
-      path.join(resourcesPath, 'app.asar.unpacked', 'node_modules', 'ffmpeg-static', ffmpegName),
-      // 3. 通过 require 获取并替换 asar 路径
-      require('ffmpeg-static').replace('app.asar', 'app.asar.unpacked')
+      path.join(resourcesPath, 'app.asar.unpacked', 'node_modules', 'ffmpeg-static', ffmpegName)
     ]
 
     console.log('[FFmpeg] Production mode, trying multiple locations...')
