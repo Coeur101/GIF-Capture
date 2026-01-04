@@ -4,54 +4,21 @@ const path = require('path')
 
 // 获取 FFmpeg 路径
 function getFfmpegPath() {
-  try {
-    const { app } = require('electron')
+  const { app } = require('electron')
 
-    // 在开发环境中，直接使用 ffmpeg-static
-    if (!app.isPackaged) {
-      const ffmpegPath = require('ffmpeg-static')
-      console.log('[FFmpeg] Development Path:', ffmpegPath)
-      return ffmpegPath
-    }
-
-    // 在生产环境中，尝试多个可能的位置
-    const ffmpegName = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg'
-    const resourcesPath = process.resourcesPath
-
-    const possiblePaths = [
-      // 1. extraResources 位置（最优先）
-      path.join(resourcesPath, 'ffmpeg-static', ffmpegName),
-      // 2. app.asar.unpacked 位置
-      path.join(resourcesPath, 'app.asar.unpacked', 'node_modules', 'ffmpeg-static', ffmpegName)
-    ]
-
-    console.log('[FFmpeg] Production mode, trying multiple locations...')
-    console.log('[FFmpeg] Resources path:', resourcesPath)
-
-    // 尝试每个可能的路径
-    for (const testPath of possiblePaths) {
-      console.log('[FFmpeg] Trying:', testPath)
-      if (fs.existsSync(testPath)) {
-        console.log('[FFmpeg] Found at:', testPath)
-        return testPath
-      }
-    }
-
-    // 如果都找不到，输出详细的调试信息
-    console.error('[FFmpeg] FFmpeg not found in any expected location')
-    console.error('[FFmpeg] Checked paths:', possiblePaths)
-
-    // 列出 resources 目录的内容
-    console.error('[FFmpeg] Resources directory contents:')
-    if (fs.existsSync(resourcesPath)) {
-      console.error(fs.readdirSync(resourcesPath))
-    }
-
-    throw new Error(`FFmpeg not found. Checked: ${possiblePaths.join(', ')}`)
-  } catch (error) {
-    console.error('[FFmpeg] Error getting ffmpeg path:', error)
-    throw error
+  // 开发环境
+  if (!app.isPackaged) {
+    return require('ffmpeg-static')
   }
+
+  // 生产环境：extraResources 位置
+  const ffmpegPath = path.join(process.resourcesPath, 'ffmpeg-static', 'ffmpeg.exe')
+
+  if (!fs.existsSync(ffmpegPath)) {
+    throw new Error(`FFmpeg not found at: ${ffmpegPath}`)
+  }
+
+  return ffmpegPath
 }
 
 // 缓存 ffmpeg 路径
