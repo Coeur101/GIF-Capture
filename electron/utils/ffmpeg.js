@@ -5,38 +5,48 @@ const path = require('path')
 // 获取 FFmpeg 路径
 function getFfmpegPath() {
   try {
-    // 在开发环境中，直接使用 ffmpeg-static
-    if (!require('electron').app.isPackaged) {
-      const ffmpegPath = require('ffmpeg-static')
-      console.log('[FFmpeg] Development Path:', ffmpegPath)
-      return ffmpegPath
+    // 获取原始路径
+    let ffmpegPath = require('ffmpeg-static')
+    console.log('[FFmpeg] Original path from ffmpeg-static:', ffmpegPath)
+
+    // 检查是否在打包环境中
+    const { app } = require('electron')
+    if (app.isPackaged) {
+      // 在打包环境中，需要替换 app.asar 为 app.asar.unpacked
+      if (ffmpegPath.includes('app.asar')) {
+        ffmpegPath = ffmpegPath.replace('app.asar', 'app.asar.unpacked')
+        console.log('[FFmpeg] Replaced path for packaged app:', ffmpegPath)
+      } else {
+        // 如果路径中没有 app.asar，手动构建路径
+        const resourcesPath = process.resourcesPath
+        const ffmpegName = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg'
+        ffmpegPath = path.join(resourcesPath, 'app.asar.unpacked', 'node_modules', 'ffmpeg-static', ffmpegName)
+        console.log('[FFmpeg] Manually constructed path:', ffmpegPath)
+      }
     }
 
-    // 在生产环境中，需要从 app.asar.unpacked 中获取
-    const { app } = require('electron')
-    const resourcesPath = process.resourcesPath || path.join(app.getAppPath(), '..')
+    console.log('[FFmpeg] Final path:', ffmpegPath)
 
-    // 构建 ffmpeg 二进制文件的路径
-    const platform = process.platform
-    const ffmpegName = platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg'
-    const ffmpegPath = path.join(
-      resourcesPath,
-      'app.asar.unpacked',
-      'node_modules',
-      'ffmpeg-static',
-      ffmpegName
-    )
-
-    console.log('[FFmpeg] Production Path:', ffmpegPath)
-    console.log('[FFmpeg] Resources Path:', resourcesPath)
-
+    // 验证文件是否存在
     if (!fs.existsSync(ffmpegPath)) {
       console.error('[FFmpeg] File not found at:', ffmpegPath)
-      console.error('[FFmpeg] Directory contents:')
-      const dir = path.dirname(ffmpegPath)
-      if (fs.existsSync(dir)) {
-        console.error(fs.readdirSync(dir))
-      }
+
+      // 尝试列出可能的位置
+      const possibleDirs = [
+        path.dirname(ffmpegPath),
+        path.join(process.resourcesPath, 'app.asar.unpacked', 'node_modules', 'ffmpeg-static'),
+        path.join(process.resourcesPath, 'app.asar.unpacked', 'node_modules'),
+      ]
+
+      possibleDirs.forEach(dir => {
+        console.error(`[FFmpeg] Checking directory: ${dir}`)
+        if (fs.existsSync(dir)) {
+          console.error('[FFmpeg] Contents:', fs.readdirSync(dir))
+        } else {
+          console.error('[FFmpeg] Directory does not exist')
+        }
+      })
+
       throw new Error(`FFmpeg not found at ${ffmpegPath}`)
     }
 
@@ -47,10 +57,17 @@ function getFfmpegPath() {
   }
 }
 
-const ffmpegPath = getFfmpegPath()
+// 缓存 ffmpeg 路径
+let cachedFfmpegPath = null
 
 function convertToGif(inputPath, outputPath, region, config) {
   return new Promise((resolve, reject) => {
+    // 在实际使用时才获取 ffmpeg 路径
+    if (!cachedFfmpegPath) {
+      cachedFfmpegPath = getFfmpegPath()
+    }
+    const ffmpegPath = cachedFfmpegPath
+
     const fps = config.fps || 15
     const maxWidth = config.maxWidth || 0 // 0 表示不限制
 
