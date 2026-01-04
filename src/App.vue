@@ -76,7 +76,7 @@ onMounted(async () => {
   // 监听选择器窗口的日志（仅在主窗口模式）
   if (!isSelector.value && window.electronAPI && window.electronAPI.onSelectorLog) {
     window.electronAPI.onSelectorLog(({ level, tag, args }) => {
-      logger[level](`[Selector]`, ...args)
+      console[level](`[Selector]`, ...args)
     })
   }
 
