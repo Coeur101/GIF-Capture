@@ -43,6 +43,13 @@ function createMainWindow() {
     mainWindow.loadFile(indexPath).catch(err => {
       console.error('[Main] Failed to load index.html:', err)
     })
+
+    // 生产环境也添加 F12 快捷键打开开发者工具，方便调试
+    mainWindow.webContents.on('before-input-event', (event, input) => {
+      if (input.key === 'F12') {
+        mainWindow.webContents.toggleDevTools()
+      }
+    })
   }
 
   mainWindow.once('ready-to-show', () => {

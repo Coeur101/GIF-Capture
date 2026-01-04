@@ -31,11 +31,10 @@
     "files": [
       "build/renderer/**/*",
       "electron/**/*",
-      "node_modules/**/*"
+      "node_modules/**/*",
+      "!node_modules/ffmpeg-static"
     ],
-    "asarUnpack": [
-      "node_modules/ffmpeg-static"
-    ],
+    "asarUnpack": [],
     "extraResources": [
       {
         "from": "node_modules/ffmpeg-static",
