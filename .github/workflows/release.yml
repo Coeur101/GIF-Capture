@@ -1,0 +1,28 @@
+name: Electron Zip Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install deps
+        run: pnpm install
+
+      - name: Build and publish
+        env:
+          GH_TOKEN: APA5AV2W6IVHNXLAN5PJSCTJLIXSY
+        run: pnpm run electron:build

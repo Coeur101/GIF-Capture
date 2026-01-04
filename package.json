@@ -26,7 +26,7 @@
     "appId": "com.gifrecorder.app",
     "productName": "GIF Capture",
     "directories": {
-      "output": "build/release"
+      "output": "build"
     },
     "files": [
       "build/renderer/**/*",
@@ -62,8 +62,8 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "你的GitHub用户名",
-      "repo": "你的仓库名"
+      "owner": "Coeur101",
+      "repo": "GIF-Capture"
     }
   }
 }
