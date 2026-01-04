@@ -1,16 +1,42 @@
 const { spawn } = require('child_process')
 const fs = require('fs')
+const path = require('path')
 
 // 获取 FFmpeg 路径
 function getFfmpegPath() {
   try {
-    // 使用 ffmpeg-static，它会自动处理平台差异
-    // 在打包后，由于使用了 asarUnpack，仍然可以正常 require
-    const ffmpegPath = require('ffmpeg-static').replace('app.asar', 'app.asar.unpacked')
-    console.log('[FFmpeg] Path:', ffmpegPath)
+    // 在开发环境中，直接使用 ffmpeg-static
+    if (!require('electron').app.isPackaged) {
+      const ffmpegPath = require('ffmpeg-static')
+      console.log('[FFmpeg] Development Path:', ffmpegPath)
+      return ffmpegPath
+    }
+
+    // 在生产环境中，需要从 app.asar.unpacked 中获取
+    const { app } = require('electron')
+    const resourcesPath = process.resourcesPath || path.join(app.getAppPath(), '..')
+
+    // 构建 ffmpeg 二进制文件的路径
+    const platform = process.platform
+    const ffmpegName = platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg'
+    const ffmpegPath = path.join(
+      resourcesPath,
+      'app.asar.unpacked',
+      'node_modules',
+      'ffmpeg-static',
+      ffmpegName
+    )
+
+    console.log('[FFmpeg] Production Path:', ffmpegPath)
+    console.log('[FFmpeg] Resources Path:', resourcesPath)
 
     if (!fs.existsSync(ffmpegPath)) {
       console.error('[FFmpeg] File not found at:', ffmpegPath)
+      console.error('[FFmpeg] Directory contents:')
+      const dir = path.dirname(ffmpegPath)
+      if (fs.existsSync(dir)) {
+        console.error(fs.readdirSync(dir))
+      }
       throw new Error(`FFmpeg not found at ${ffmpegPath}`)
     }
 
