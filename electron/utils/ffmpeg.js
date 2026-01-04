@@ -5,52 +5,51 @@ const path = require('path')
 // 获取 FFmpeg 路径
 function getFfmpegPath() {
   try {
-    // 获取原始路径
-    let ffmpegPath = require('ffmpeg-static')
-    console.log('[FFmpeg] Original path from ffmpeg-static:', ffmpegPath)
-
-    // 检查是否在打包环境中
     const { app } = require('electron')
-    if (app.isPackaged) {
-      // 在打包环境中，需要替换 app.asar 为 app.asar.unpacked
-      if (ffmpegPath.includes('app.asar')) {
-        ffmpegPath = ffmpegPath.replace('app.asar', 'app.asar.unpacked')
-        console.log('[FFmpeg] Replaced path for packaged app:', ffmpegPath)
-      } else {
-        // 如果路径中没有 app.asar，手动构建路径
-        const resourcesPath = process.resourcesPath
-        const ffmpegName = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg'
-        ffmpegPath = path.join(resourcesPath, 'app.asar.unpacked', 'node_modules', 'ffmpeg-static', ffmpegName)
-        console.log('[FFmpeg] Manually constructed path:', ffmpegPath)
+
+    // 在开发环境中，直接使用 ffmpeg-static
+    if (!app.isPackaged) {
+      const ffmpegPath = require('ffmpeg-static')
+      console.log('[FFmpeg] Development Path:', ffmpegPath)
+      return ffmpegPath
+    }
+
+    // 在生产环境中，尝试多个可能的位置
+    const ffmpegName = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg'
+    const resourcesPath = process.resourcesPath
+
+    const possiblePaths = [
+      // 1. extraResources 位置（最优先）
+      path.join(resourcesPath, 'ffmpeg-static', ffmpegName),
+      // 2. app.asar.unpacked 位置
+      path.join(resourcesPath, 'app.asar.unpacked', 'node_modules', 'ffmpeg-static', ffmpegName),
+      // 3. 通过 require 获取并替换 asar 路径
+      require('ffmpeg-static').replace('app.asar', 'app.asar.unpacked')
+    ]
+
+    console.log('[FFmpeg] Production mode, trying multiple locations...')
+    console.log('[FFmpeg] Resources path:', resourcesPath)
+
+    // 尝试每个可能的路径
+    for (const testPath of possiblePaths) {
+      console.log('[FFmpeg] Trying:', testPath)
+      if (fs.existsSync(testPath)) {
+        console.log('[FFmpeg] Found at:', testPath)
+        return testPath
       }
     }
 
-    console.log('[FFmpeg] Final path:', ffmpegPath)
+    // 如果都找不到，输出详细的调试信息
+    console.error('[FFmpeg] FFmpeg not found in any expected location')
+    console.error('[FFmpeg] Checked paths:', possiblePaths)
 
-    // 验证文件是否存在
-    if (!fs.existsSync(ffmpegPath)) {
-      console.error('[FFmpeg] File not found at:', ffmpegPath)
-
-      // 尝试列出可能的位置
-      const possibleDirs = [
-        path.dirname(ffmpegPath),
-        path.join(process.resourcesPath, 'app.asar.unpacked', 'node_modules', 'ffmpeg-static'),
-        path.join(process.resourcesPath, 'app.asar.unpacked', 'node_modules'),
-      ]
-
-      possibleDirs.forEach(dir => {
-        console.error(`[FFmpeg] Checking directory: ${dir}`)
-        if (fs.existsSync(dir)) {
-          console.error('[FFmpeg] Contents:', fs.readdirSync(dir))
-        } else {
-          console.error('[FFmpeg] Directory does not exist')
-        }
-      })
-
-      throw new Error(`FFmpeg not found at ${ffmpegPath}`)
+    // 列出 resources 目录的内容
+    console.error('[FFmpeg] Resources directory contents:')
+    if (fs.existsSync(resourcesPath)) {
+      console.error(fs.readdirSync(resourcesPath))
     }
 
-    return ffmpegPath
+    throw new Error(`FFmpeg not found. Checked: ${possiblePaths.join(', ')}`)
   } catch (error) {
     console.error('[FFmpeg] Error getting ffmpeg path:', error)
     throw error
