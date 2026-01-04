@@ -24,22 +24,39 @@ jobs:
       - name: Install deps
         run: pnpm install --no-frozen-lockfile
 
-      - name: Ensure ffmpeg-static binary is downloaded
+      - name: Download FFmpeg binary
         run: |
-          echo "Rebuilding ffmpeg-static to ensure binary download..."
-          pnpm rebuild ffmpeg-static
+          echo "Downloading FFmpeg binary for Windows x64..."
+          $ffmpegDir = "node_modules/ffmpeg-static"
+
+          # 从 ffmpeg-static 的 GitHub releases 下载预编译的 Windows 二进制文件
+          $ffmpegUrl = "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.0/ffmpeg-win32-x64"
+          $ffmpegExe = "$ffmpegDir/ffmpeg.exe"
+
+          echo "Downloading from: $ffmpegUrl"
+          echo "Target: $ffmpegExe"
+
+          Invoke-WebRequest -Uri $ffmpegUrl -OutFile $ffmpegExe
+
+          if (Test-Path $ffmpegExe) {
+            echo "✓ FFmpeg downloaded successfully"
+            $fileInfo = Get-Item $ffmpegExe
+            echo "File size: $($fileInfo.Length) bytes"
+          } else {
+            echo "✗ Failed to download FFmpeg"
+            exit 1
+          }
         shell: pwsh
 
       - name: Verify ffmpeg-static installation
         run: |
-          echo "Checking ffmpeg-static installation..."
+          echo "Verifying FFmpeg installation..."
           if (Test-Path "node_modules/ffmpeg-static/ffmpeg.exe") {
             echo "✓ ffmpeg.exe found"
             Get-Item "node_modules/ffmpeg-static/ffmpeg.exe"
           } else {
             echo "✗ ffmpeg.exe NOT found"
-            echo "Contents of node_modules/ffmpeg-static:"
-            Get-ChildItem "node_modules/ffmpeg-static" -ErrorAction SilentlyContinue
+            exit 1
           }
         shell: pwsh
 
