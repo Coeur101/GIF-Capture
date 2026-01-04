@@ -22,7 +22,26 @@ jobs:
         run: npm install -g pnpm
 
       - name: Install deps
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Ensure ffmpeg-static binary is downloaded
+        run: |
+          echo "Rebuilding ffmpeg-static to ensure binary download..."
+          pnpm rebuild ffmpeg-static
+        shell: pwsh
+
+      - name: Verify ffmpeg-static installation
+        run: |
+          echo "Checking ffmpeg-static installation..."
+          if (Test-Path "node_modules/ffmpeg-static/ffmpeg.exe") {
+            echo "✓ ffmpeg.exe found"
+            Get-Item "node_modules/ffmpeg-static/ffmpeg.exe"
+          } else {
+            echo "✗ ffmpeg.exe NOT found"
+            echo "Contents of node_modules/ffmpeg-static:"
+            Get-ChildItem "node_modules/ffmpeg-static" -ErrorAction SilentlyContinue
+          }
+        shell: pwsh
 
       - name: Build and publish
         env:
