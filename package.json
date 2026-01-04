@@ -1,6 +1,6 @@
 {
   "name": "gif-capture",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Electron GIF 捕获工具",
   "main": "electron/main.js",
   "scripts": {
