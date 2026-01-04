@@ -1,0 +1,69 @@
+{
+  "name": "gif-capture",
+  "version": "1.0.0",
+  "description": "Electron GIF 捕获工具",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "electron:start": "pnpm exec electron .",
+    "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && pnpm run electron:start\"",
+    "electron:build": "vite build && electron-builder --publish always"
+  },
+  "dependencies": {
+    "ffmpeg-static": "^5.2.0",
+    "vue": "^3.4.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "concurrently": "^8.2.2",
+    "electron": "^28.3.3",
+    "electron-builder": "^24.9.1",
+    "vite": "^5.0.0",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.gifrecorder.app",
+    "productName": "GIF Capture",
+    "directories": {
+      "output": "build/release"
+    },
+    "files": [
+      "build/renderer/**/*",
+      "electron/**/*",
+      "node_modules/**/*"
+    ],
+    "asarUnpack": [
+      "node_modules/ffmpeg-static/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "GIF Recorder"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "你的GitHub用户名",
+      "repo": "你的仓库名"
+    }
+  }
+}
