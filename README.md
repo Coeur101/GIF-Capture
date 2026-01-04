@@ -1,5 +1,7 @@
 # Electron GIF 捕获工具实现方案
 
+软件包:<https://github.com/Coeur101/GIF-Capture/releases>
+
 ## 一、项目目标
 
 实现一个基于 **Electron** 的桌面端 GIF 录制工具，支持以下功能：
