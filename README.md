@@ -1,4 +1,4 @@
-# Electron GIF 捕获工具实现方案
+# Electron GIF 捕获工具
 
 软件包:<https://github.com/Coeur101/GIF-Capture/releases>
 
