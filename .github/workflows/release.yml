@@ -24,5 +24,5 @@ jobs:
 
       - name: Build and publish
         env:
-          GH_TOKEN: APA5AV2W6IVHNXLAN5PJSCTJLIXSY
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: pnpm run electron:build
